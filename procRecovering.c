@@ -37,7 +37,7 @@ char ** readFile(FILE * file , int maxLines){
 
 }
 
-int displayIntVector(int * vector, int length){
+void displayIntVector(int * vector, int length){
   int i;
   for(i=0; i< length; i++){
     printf("%d \t", vector[i]);
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
   char ** lines = readFile(file, maxLines);
 
 
-  int rank, size;
+  int rank, size, newsize;
 
   MPI_Init(&argc, &argv);
 
@@ -98,6 +98,7 @@ int main(int argc, char *argv[]) {
       displayIntVector(neighbours , MAX_NEIGHBOURS);
 
       MPI_Comm  worlds;
+
       int nodes = 1;
       int * sources = malloc(sizeof(int));
       sources[0]=rank;
@@ -112,32 +113,26 @@ int main(int argc, char *argv[]) {
         printf("destination = %d \n" , destination[i-1]);
       }
       int reorder = 1;
-      MPI_Request  request;
-      MPI_Status status;
-      MPI_Info f;
-      // MPI_Comm_call_errhandler(MPI_COMM_WORLD, MPI_ERR_OTHER);
-      // MPI_Wait(&request, &status);
+
+
+      printf("avant de lancer\n");
+      printf("mon noeud est %d \n ma source est %d \n mon degre est %d \n et mes destinations \n", nodes, sources[0], degrees[0]);
+      for(i=0; i< degrees[0]; i++){
+        printf("%d \n", destination[i]);
+      }
+
+      
       MPI_Dist_graph_create(MPI_COMM_WORLD , nodes, sources, degrees, destination, weight, MPI_INFO_NULL,reorder, &worlds);
 
-    //     fclose(file);
-    // //free indice;
-      // int rank, size;
-      // MPI_Init(&argc, &argv);
+      MPI_Comm_size(worlds,&newsize);
+      printf("the size is %d and the fucking rank is %d \n" , newsize, rank);
+      int data= rank;
+      MPI_Bcast(&data, 1, MPI_INT, 0, worlds);
+      printf("Je suis %d et j'ai reçu %d \n",rank, data );
 
-      //
-      // printf("je suis le processus numéro  %d \n" , rank);
-      // int  tstCount , rec= rank;
-      // if(rank == 0){
-      //   for(tstCount=0; tstCount< size; tstCount++){
-      //     MPI_Send(&rec, 1, MPI_INT, tstCount, 0, worlds);
-      //
-      //   }
-      // }
-      // MPI_Recv(&rec, 1, MPI_INT, 0, 0, worlds, MPI_STATUS_IGNORE);
-      // printf("je khra suis %d et je recois de khra %d", rank, rec);
-      // MPI_Bcast(&rec, 1, MPI_INT, rank, worlds);
-      // printf("j'ai recu un message de %d et je suis %d \n",rec, rank );
-      printf("the size is %d and the fucking rank is %d \n" , size, rank);
+
+
+
 
 
   MPI_Finalize();
